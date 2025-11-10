@@ -2,24 +2,11 @@ import { AudioData } from '../audio/types'
 import { BaseVisualizer } from './BaseVisualizer'
 
 export class SpectrogramVisualizer extends BaseVisualizer {
-  private historyCanvas: HTMLCanvasElement
-  private historyCtx: CanvasRenderingContext2D
+  private imageData: ImageData | null = null
   private frequencyBins: number = 128
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas)
-
-    // Create offscreen canvas for history
-    this.historyCanvas = document.createElement('canvas')
-    const ctx = this.historyCanvas.getContext('2d')
-    if (!ctx) {
-      throw new Error('Failed to create history context')
-    }
-    this.historyCtx = ctx
-
-    // Initialize with default dimensions
-    this.historyCanvas.width = canvas.width || 800
-    this.historyCanvas.height = canvas.height || 600
   }
 
   resize(width: number, height: number): void {
@@ -27,23 +14,8 @@ export class SpectrogramVisualizer extends BaseVisualizer {
 
     // Only resize if dimensions are valid
     if (width > 0 && height > 0) {
-      // Save current content
-      const tempCanvas = document.createElement('canvas')
-      tempCanvas.width = this.historyCanvas.width
-      tempCanvas.height = this.historyCanvas.height
-      const tempCtx = tempCanvas.getContext('2d')
-      if (tempCtx) {
-        tempCtx.drawImage(this.historyCanvas, 0, 0)
-      }
-
-      // Resize history canvas
-      this.historyCanvas.width = width
-      this.historyCanvas.height = height
-
-      // Restore content (scaled)
-      if (tempCtx) {
-        this.historyCtx.drawImage(tempCanvas, 0, 0, width, height)
-      }
+      // Create new image data with proper dimensions
+      this.imageData = this.ctx.createImageData(width, height)
 
       // Use a reasonable number of frequency bins (max 256)
       this.frequencyBins = Math.min(height, 256)
@@ -53,31 +25,31 @@ export class SpectrogramVisualizer extends BaseVisualizer {
   render(audioData: AudioData): void {
     const { frequencyData } = audioData
 
-    // Skip rendering if dimensions are invalid
-    if (this.width <= 0 || this.height <= 0) {
+    // Skip rendering if dimensions are invalid or imageData not ready
+    if (this.width <= 0 || this.height <= 0 || !this.imageData) {
       return
     }
 
-    // Create a temporary canvas for the shift operation
-    const tempCanvas = document.createElement('canvas')
-    tempCanvas.width = this.historyCanvas.width
-    tempCanvas.height = this.historyCanvas.height
-    const tempCtx = tempCanvas.getContext('2d')
+    // Shift the image data left by 1 pixel
+    const data = this.imageData.data
+    const width = this.width
+    const height = this.height
 
-    if (!tempCtx) return
-
-    // Copy current history to temp canvas
-    tempCtx.drawImage(this.historyCanvas, 0, 0)
-
-    // Clear history canvas
-    this.historyCtx.clearRect(0, 0, this.width, this.height)
-
-    // Draw shifted content (scroll left by 1 pixel)
-    this.historyCtx.drawImage(tempCanvas, -1, 0)
+    // Shift pixels to the left
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width - 1; x++) {
+        const srcIndex = (y * width + x + 1) * 4
+        const dstIndex = (y * width + x) * 4
+        data[dstIndex] = data[srcIndex]         // R
+        data[dstIndex + 1] = data[srcIndex + 1] // G
+        data[dstIndex + 2] = data[srcIndex + 2] // B
+        data[dstIndex + 3] = data[srcIndex + 3] // A
+      }
+    }
 
     // Draw new column on the right
     const step = frequencyData.length / this.frequencyBins
-    const pixelHeight = this.height / this.frequencyBins
+    const pixelHeight = height / this.frequencyBins
 
     for (let i = 0; i < this.frequencyBins; i++) {
       const dataIndex = Math.floor(i * step)
@@ -100,28 +72,29 @@ export class SpectrogramVisualizer extends BaseVisualizer {
         b = 255
       }
 
-      this.historyCtx.fillStyle = `rgb(${r}, ${g}, ${b})`
-      this.historyCtx.fillRect(
-        this.width - 2,
-        this.height - (i + 1) * pixelHeight,
-        2,
-        Math.ceil(pixelHeight)
-      )
+      // Draw multiple pixels vertically for this frequency bin
+      const startY = Math.floor(height - (i + 1) * pixelHeight)
+      const endY = Math.ceil(height - i * pixelHeight)
+
+      for (let y = startY; y < endY && y < height; y++) {
+        if (y >= 0) {
+          const pixelIndex = (y * width + (width - 1)) * 4
+          data[pixelIndex] = r
+          data[pixelIndex + 1] = g
+          data[pixelIndex + 2] = b
+          data[pixelIndex + 3] = 255 // Alpha
+        }
+      }
     }
 
-    // Draw to main canvas
+    // Draw to canvas
     this.ctx.fillStyle = '#0a0a0f'
     this.ctx.fillRect(0, 0, this.width, this.height)
-    this.ctx.drawImage(this.historyCanvas, 0, 0)
+    this.ctx.putImageData(this.imageData, 0, 0)
   }
 
   cleanup(): void {
     super.cleanup()
-    this.historyCtx.clearRect(
-      0,
-      0,
-      this.historyCanvas.width,
-      this.historyCanvas.height
-    )
+    this.imageData = null
   }
 }
