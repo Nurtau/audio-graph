@@ -1,0 +1,59 @@
+.container {
+  position: fixed;
+  top: var(--spacing-lg);
+  left: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 1000;
+  animation: slideInFromBottom 0.3s ease;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: var(--error);
+}
+
+.message {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.closeButton {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+@media (min-width: 768px) {
+  .container {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    max-width: 500px;
+  }
+}

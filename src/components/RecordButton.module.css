@@ -1,0 +1,43 @@
+.button {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), var(--shadow-xl);
+}
+
+.button:active {
+  transform: scale(0.95);
+}
+
+.button.recording {
+  background: var(--error);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+}
+
+@media (min-width: 768px) {
+  .button {
+    width: 80px;
+    height: 80px;
+  }
+
+  .icon {
+    width: 40px;
+    height: 40px;
+  }
+}
