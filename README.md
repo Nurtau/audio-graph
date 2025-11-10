@@ -2,6 +2,12 @@
 
 A mobile-first web application for real-time audio capture, analysis, and visualization with an intuitive dark-themed interface.
 
+## 🚀 Live Demo
+
+**[Try it live on GitHub Pages](https://nurtau.github.io/audio-graph/)**
+
+> Note: You'll need to grant microphone permissions to use the app.
+
 ## Features
 
 - 🎤 Real-time microphone audio capture
@@ -22,6 +28,9 @@ npm run dev
 
 # Build for production
 npm run build
+
+# Deploy to GitHub Pages
+npm run deploy
 ```
 
 ## Project Structure
