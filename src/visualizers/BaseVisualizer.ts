@@ -13,7 +13,7 @@ export abstract class BaseVisualizer {
       throw new Error('Failed to get 2D context')
     }
     this.ctx = ctx
-    this.resize(canvas.width, canvas.height)
+    // Don't resize in constructor - let the component handle initial sizing
   }
 
   resize(width: number, height: number): void {

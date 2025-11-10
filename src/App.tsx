@@ -5,6 +5,7 @@ import { VisualizerSelector } from './components/VisualizerSelector'
 import { RecordButton } from './components/RecordButton'
 import { LevelMeter } from './components/LevelMeter'
 import { ErrorDisplay } from './components/ErrorDisplay'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import styles from './App.module.css'
 
 function AppContent() {
@@ -34,8 +35,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AudioProvider>
-      <AppContent />
-    </AudioProvider>
+    <ErrorBoundary>
+      <AudioProvider>
+        <AppContent />
+      </AudioProvider>
+    </ErrorBoundary>
   )
 }
